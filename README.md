@@ -1,7 +1,7 @@
 # GenesisH0 for Fujicoin
 A python script for creating the parameters required for a unique genesis block. scrypt-N11/SHA256/X11/X13/X15.
 
-### Works only with Python2
+### For Python3 and Python2
 
 ### Dependencies
     sudo pip install scrypt construct==2.5.2

@@ -1,6 +1,6 @@
 import hashlib, binascii, struct, array, os, time, sys, optparse
 import scrypt
-
+import codecs
 from construct import *
 
 
@@ -59,9 +59,10 @@ def create_input_script(psz_timestamp):
   if len(psz_timestamp) > 76: psz_prefix = '4c'
 
   #script_prefix = '04ffff001d0104' + psz_prefix + chr(len(psz_timestamp)).encode('hex')
-  script_prefix = '0002e703' + chr(len(psz_timestamp)).encode('hex') # Fujicoin
-  print (script_prefix + psz_timestamp.encode('hex'))
-  return (script_prefix + psz_timestamp.encode('hex')).decode('hex')
+  script_prefix = '0002e703' + codecs.encode((chr(len(psz_timestamp))).encode(), 'hex_codec').decode() # Fujicoin
+  inputscript = script_prefix + codecs.encode(psz_timestamp.encode(), 'hex_codec').decode()
+  print (inputscript)
+  return codecs.decode(inputscript, 'hex_codec')
 
 
 def create_output_script(pubkey):
@@ -87,21 +88,22 @@ def create_transaction(input_script, output_script,options):
     Bytes('output_script',  0x00), # Fujicoin
     UBInt32('locktime'))
 
-  tx = transaction.parse('\x00'*(127 + len(input_script)))
+  tx = transaction.parse(b'\x00'*(127 + len(input_script)))
   tx.version           = struct.pack('<I', 1)
   tx.num_inputs        = 1
   tx.prev_output       = struct.pack('<qqqq', 0,0,0,0)
   tx.prev_out_idx      = 0xFFFFFFFF
   tx.input_script_len  = len(input_script)
-  tx.input_script      = input_script
+  tx.input_script      = bytes(input_script)
   tx.sequence          = 0xFFFFFFFF
   tx.num_outputs       = 1
   tx.out_value         = struct.pack('<q' ,options.value)#0x000005f5e100)#012a05f200) #50 coins
   #tx.out_value         = struct.pack('<q' ,0x000000012a05f200) #50 coins
   #tx.output_script_len = 0x43
   tx.output_script_len = 0x00 # Fujicoin
-  tx.output_script     = output_script
+  tx.output_script     = b''
   tx.locktime          = 0 
+
   return transaction.build(tx)
 
 
@@ -114,7 +116,7 @@ def create_block_header(hash_merkle_root, time, bits, nonce):
     Bytes("bits", 4),
     Bytes("nonce", 4))
 
-  genesisblock = block_header.parse('\x00'*80)
+  genesisblock = block_header.parse(b'\x00'*80)
   genesisblock.version          = struct.pack('<I', 1)
   genesisblock.hash_prev_block  = struct.pack('<qqqq', 0,0,0,0)
   genesisblock.hash_merkle_root = hash_merkle_root
@@ -174,7 +176,7 @@ def generate_hashes_from_block(data_block, algorithm):
 
 
 def is_genesis_hash(header_hash, target):
-  return int(header_hash.encode('hex_codec'), 16) < target
+  return int(codecs.encode(header_hash, 'hex_codec'), 16) < target
 
 
 def calculate_hashrate(nonce, last_updated):
@@ -191,7 +193,7 @@ def calculate_hashrate(nonce, last_updated):
 
 def print_block_info(options, hash_merkle_root):
   print ("algorithm: "    + (options.algorithm))
-  print ("merkle hash: "  + hash_merkle_root[::-1].encode('hex_codec'))
+  print ("merkle hash: "  + codecs.encode(hash_merkle_root[::-1], 'hex_codec').decode())
   print ("pszTimestamp: " + options.timestamp)
   print ("pubkey: "       + options.pubkey)
   print ("time: "         + str(options.time))
@@ -201,7 +203,7 @@ def print_block_info(options, hash_merkle_root):
 def announce_found_genesis(genesis_hash, nonce):
   print ("genesis hash found!")
   print ("nonce: "        + str(nonce))
-  print ("genesis hash: " + genesis_hash.encode('hex_codec'))
+  print ("genesis hash: " + codecs.encode(genesis_hash, 'hex_codec').decode())
 
 
 # GOGOGO!
