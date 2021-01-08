@@ -25,16 +25,16 @@ def get_args():
   parser = optparse.OptionParser()
   parser.add_option("-t", "--time", dest="time", default=int(time.time()), 
                    type="int", help="the (unix) time when the genesisblock is created")
-  parser.add_option("-z", "--timestamp", dest="timestamp", default="Mount Fuji is the most beautiful mountain in Japan, altitude is 3776.24m",
+  parser.add_option("-z", "--timestamp", dest="timestamp", default="The Times 03/Jan/2009 Chancellor on brink of second bailout for banks",
                    type="string", help="the pszTimestamp found in the coinbase of the genesisblock")
   parser.add_option("-n", "--nonce", dest="nonce", default=0,
                    type="int", help="the first value of the nonce that will be incremented when searching the genesis hash")
-  parser.add_option("-a", "--algorithm", dest="algorithm", default="scrypt",
+  parser.add_option("-a", "--algorithm", dest="algorithm", default="SHA256",
                     help="the PoW algorithm: [SHA256|scrypt|X11|X13|X15]")
-  parser.add_option("-p", "--pubkey", dest="pubkey", default="",
+  parser.add_option("-p", "--pubkey", dest="pubkey", default="04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f",
                    type="string", help="the pubkey found in the output script")
-  parser.add_option("-v", "--value", dest="value", default=100000000,
-                   type="int", help="the value in coins for the output, full value (exp. in fujicoin 100000000 - To get other coins value: Block Value * 100000000)")
+  parser.add_option("-v", "--value", dest="value", default=5000000000,
+                   type="int", help="the value in coins for the output, full value (exp. in bitcoin 5000000000 - To get other coins value: Block Value * 100000000)")
   parser.add_option("-b", "--bits", dest="bits",
                    type="int", help="the target in compact representation, associated to a difficulty of 1")
 
@@ -58,18 +58,16 @@ def create_input_script(psz_timestamp):
   #use OP_PUSHDATA1 if required
   if len(psz_timestamp) > 76: psz_prefix = '4c'
 
-  #script_prefix = '04ffff001d0104' + psz_prefix + chr(len(psz_timestamp)).encode('hex')
-  script_prefix = '0002e703' + codecs.encode((chr(len(psz_timestamp))).encode(), 'hex_codec').decode() # Fujicoin
+  script_prefix = '04ffff001d0104' + psz_prefix + codecs.encode((chr(len(psz_timestamp))).encode(), 'hex_codec').decode()
   inputscript = script_prefix + codecs.encode(psz_timestamp.encode(), 'hex_codec').decode()
-  print (inputscript)
   return codecs.decode(inputscript, 'hex_codec')
 
 
 def create_output_script(pubkey):
   script_len = '41'
   OP_CHECKSIG = 'ac'
-  #return (script_len + pubkey + OP_CHECKSIG).decode('hex')
-  return '' # Fujicoin
+  outputscript = script_len + pubkey + OP_CHECKSIG
+  return codecs.decode(outputscript, 'hex_codec')
 
 
 def create_transaction(input_script, output_script,options):
@@ -84,8 +82,7 @@ def create_transaction(input_script, output_script,options):
     Byte('num_outputs'),
     Bytes('out_value', 8),
     Byte('output_script_len'),
-    #Bytes('output_script',  0x43),
-    Bytes('output_script',  0x00), # Fujicoin
+    Bytes('output_script',  0x43),
     UBInt32('locktime'))
 
   tx = transaction.parse(b'\x00'*(127 + len(input_script)))
@@ -99,11 +96,9 @@ def create_transaction(input_script, output_script,options):
   tx.num_outputs       = 1
   tx.out_value         = struct.pack('<q' ,options.value)#0x000005f5e100)#012a05f200) #50 coins
   #tx.out_value         = struct.pack('<q' ,0x000000012a05f200) #50 coins
-  #tx.output_script_len = 0x43
-  tx.output_script_len = 0x00 # Fujicoin
-  tx.output_script     = b''
+  tx.output_script_len = 0x43
+  tx.output_script     = output_script
   tx.locktime          = 0 
-
   return transaction.build(tx)
 
 
@@ -150,8 +145,7 @@ def generate_hashes_from_block(data_block, algorithm):
   sha256_hash = hashlib.sha256(hashlib.sha256(data_block).digest()).digest()[::-1]
   header_hash = ""
   if algorithm == 'scrypt':
-    #header_hash = scrypt.hash(data_block,data_block,1024,1,1,32)[::-1] # for Fujicoin
-    header_hash = scrypt.hash(data_block,data_block,2048,1,1,32)[::-1] 
+    header_hash = scrypt.hash(data_block,data_block,1024,1,1,32)[::-1] 
   elif algorithm == 'SHA256':
     header_hash = sha256_hash
   elif algorithm == 'X11':

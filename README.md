@@ -1,27 +1,53 @@
-# GenesisH0 for Fujicoin
-A python script for creating the parameters required for a unique genesis block. scrypt-N11/SHA256/X11/X13/X15.
+# GenesisH0
+A python script for creating the parameters required for a unique genesis block. SHA256/scrypt/X11/X13/X15.
 
 ### For Python3 and Python2
+
+This code is a modification of the original [GenesisH0](https://github.com/lhartikk/GenesisH0) to run on python3.
 
 ### Dependencies
     sudo pip install scrypt construct==2.5.2
 
+To create geneses based on X11 algorithm you will also need to install the [xcoin-hash](https://github.com/lhartikk/xcoin-hash) module. 
+For X13 you will need the [x13_hash](https://github.com/sherlockcoin/X13-PythonHash) module and for X15 the [x15_hash](https://github.com/minings/x15_hash) module.
+    
 ### Examples
-Create the original genesis hash found in Fujicoin
+Create the original genesis hash found in Bitcoin
 
-    python genesis.py -t 1609459200 -b 0x1e0ffff0 -n 3843000
+    python genesis.py -z "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks" -n 2083236893 -t 1231006505
 Output:
 
-    algorithm: scrypt
-    merkle hash: f951a273c3055d1bb36b4291e7f9edd491c2d435bd5737318ef8a643cab84b61
-    pszTimestamp: Mount Fuji is the most beautiful mountain in Japan, altitude is 3776.24m
-    pubkey:
-    time: 1609459200
-    bits: 0x1e0ffff0
+    algorithm: sha256
+    merkle hash: 4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b
+    pszTimestamp: The Times 03/Jan/2009 Chancellor on brink of second bailout for banks
+    pubkey: 04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f
+    time: 1231006505
+    bits: 0x1d00ffff
     Searching for genesis hash..
-    1821.0 hash/s, estimate: 655.2 hgenesis hash found!
-    nonce: 3843174
-    genesis hash: 46e7e81bb7ab789c25594da86698fa65fbc5387d52d961a1235bcaf9d8e60f59
+    genesis hash found!
+    nonce: 2083236893
+    genesis hash: 000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
+Create the regtest genesis hash found in Bitcoin
+
+    python genesis.py -z "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks" -n 2 -t 1296688602 -b 0x207fffff
+
+Create the original genesis hash found in Litecoin
+
+    python genesis.py -a scrypt -z "NY Times 05/Oct/2011 Steve Jobs, Apple’s Visionary, Dies at 56" -p "040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9" -t 1317972665 -n 2084524493
+    
+Create a unique genesis hash with custom pszTimestamp
+
+    python genesis.py -a scrypt -z "Time flies like an arrow. Fruit flies like a banana."
+    
+Create the original genesis hash found in DarkCoin. (requires [xcoin-hash](https://github.com/lhartikk/xcoin-hash))
+
+    python genesis.py -a X11 -z "Wired 09/Jan/2014 The Grand Experiment Goes Live: Overstock.com Is Now Accepting Bitcoins" -t 1317972665 -p "040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9" -n 28917698 -t 1390095618 -v 5000000000
+
+Create the original genesis hash found in HiroCoin (requires [xcoin-hash](https://github.com/lhartikk/xcoin-hash)).
+
+    python genesis.py -a X11 -z "JapanToday 13/Mar/2014 Ways eyed to make planes easier to find in ocean" -p "040184710fa689ad5023690c80f3a49c8f13f8d45b8c857fbcbc8bc4a8e4d3eb4b10f4d4604fa08dce601aaf0f470216fe1b51850b4acf21b179c45070ac7b03a9" -n 1234746574 -t 1394723131 -v 40000000000
+    
+
 
 ### Options
     Usage: genesis.py [options]
@@ -35,11 +61,11 @@ Output:
          the first value of the nonce that will be incremented
          when searching the genesis hash
       -a ALGORITHM, --algorithm=ALGORITHM
-         the PoW algorithm: [scrypt|SHA256|X11|X13|X15]
+         the PoW algorithm: [SHA256|scrypt|X11|X13|X15]
       -p PUBKEY, --pubkey=PUBKEY
          the pubkey found in the output script
       -v VALUE, --value=VALUE
-         the value in coins for the output, full value (exp. in fujicoin 100000000 - To get other coins value: Block Value * 100000000)
+         the value in coins for the output, full value (exp. in bitcoin 5000000000 - To get other coins value: Block Value * 100000000)
       -b BITS, --bits=BITS
          the target in compact representation, associated to a difficulty of 1
 
